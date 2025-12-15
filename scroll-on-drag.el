@@ -564,8 +564,8 @@ when `scroll-on-drag-follow-mouse' is non-nil."
   (interactive "e")
   (let ((scroll-win nil))
     (when scroll-on-drag-follow-mouse
-      (setq scroll-win (posn-window (or (event-start event) last-input-event))))
-
+      (when-let* ((event-any (or event last-input-event)))
+        (setq scroll-win (posn-window (event-start event-any)))))
     (scroll-on-drag--impl-with-window scroll-win)))
 
 
