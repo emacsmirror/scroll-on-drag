@@ -358,7 +358,6 @@ Returns non-nil when scrolling took place, otherwise nil."
             (lambda (self-fn)
               (let ((lines delta))
                 (unless (zerop lines)
-                  (decf delta-px-accum (* lines this-frame-char-height))
                   (let ((lines-remainder (scroll-on-drag--scroll-by-lines this-window lines t)))
                     (unless (zerop (- lines lines-remainder))
                       (scroll-on-drag--force-redisplay-with-hooks)))))
