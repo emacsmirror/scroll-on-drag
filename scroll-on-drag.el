@@ -13,7 +13,7 @@
 
 ;; Interactive scrolling which can be canceled by pressing escape.
 
-;;; Usage
+;;; Usage:
 
 ;; (scroll-on-drag) ; Interactively scroll the current buffer
 ;;
@@ -46,7 +46,7 @@
   :group 'scrolling)
 
 (defcustom scroll-on-drag-style 'line-by-pixel
-  "The the method scrolling is calculated."
+  "The method used to calculate scrolling."
   :type
   '(choice (const :tag "Line" line)
            (const :tag "Line-By-Pixel" line-by-pixel)))
@@ -78,9 +78,9 @@
 (defcustom scroll-on-drag-mode-line-format nil
   "The `mode-line-format' to use or nil to leave the `mode-line-format' unchanged.
 
-This can be useful to use a simplified or event disabling the mode-line
+This can be useful to use a simplified or even disabling the mode-line
 while scrolling, as a complex mode-line can interfere with smooth scrolling."
-  :type '(choice (const nil) string))
+  :type '(choice (const nil) sexp))
 
 (defcustom scroll-on-drag-pre-hook nil
   "List of functions to be called when `scroll-on-drag' starts."
@@ -101,16 +101,16 @@ while scrolling, as a complex mode-line can interfere with smooth scrolling."
 ;; Generic scrolling functions.
 ;;
 ;; It would be nice if this were part of a more general library.
-;; Optionally also move the point is needed because _not_ doing this
-;; makes the window constraint so the point stays within it.
+;; Support for move the point is needed because failing to do this
+;; makes the window constrained so the point stays within it.
 
 ;; Per-line Scroll.
-;; return remainder of lines to scroll (matching forward-line).
+;; Return remainder of lines to scroll (matching forward-line).
 (defun scroll-on-drag--scroll-by-lines (window lines also-move-point)
   "Line based scroll that optionally move the point.
-Argument WINDOW The window to scroll.
-Argument LINES The number of lines to scroll (signed).
-Argument ALSO-MOVE-POINT When non-nil, move the POINT as well."
+WINDOW The window to scroll.
+LINES The number of lines to scroll (signed).
+ALSO-MOVE-POINT When non-nil, move the POINT as well."
   (declare (important-return-value nil))
   (let ((lines-remainder 0))
     (when also-move-point
@@ -129,14 +129,14 @@ Argument ALSO-MOVE-POINT When non-nil, move the POINT as well."
           (forward-line (- lines-remainder)))))
     lines-remainder))
 
-;; Per-pixel Scroll,
-;; return remainder of lines to scroll (matching forward-line).
+;; Per-pixel Scroll.
+;; Return remainder of lines to scroll (matching forward-line).
 (defun scroll-on-drag--scroll-by-pixels (window char-height delta-px also-move-point)
-  "Line based scroll that optionally move the point.
-Argument WINDOW The window to scroll.
-Argument CHAR-HEIGHT The result of `frame-char-height'.
-Argument DELTA-PX The number of pixels to scroll (signed).
-Argument ALSO-MOVE-POINT When non-nil, move the POINT as well."
+  "Pixel based scroll that optionally move the point.
+WINDOW The window to scroll.
+CHAR-HEIGHT The result of `frame-char-height'.
+DELTA-PX The number of pixels to scroll (signed).
+ALSO-MOVE-POINT When non-nil, move the POINT as well."
   (declare (important-return-value nil))
   (cond
    ((< delta-px 0)
@@ -165,7 +165,7 @@ Argument ALSO-MOVE-POINT When non-nil, move the POINT as well."
           (setq scroll-px char-height)))
       (set-window-vscroll window scroll-px t)
       lines-remainder))
-   ;; no lines scrolled.
+   ;; No lines scrolled.
    (t
     0)))
 
@@ -196,7 +196,7 @@ Argument ALSO-MOVE-POINT When non-nil, move the POINT as well."
 
 (defmacro scroll-on-drag--with-evil-visual-mode-hack (visual-line-data &rest body)
   "Execute BODY without evil-visual-mode line constraints.
-Run when MARK is non-nil.
+Run when VISUAL-LINE-DATA is non-nil.
 VISUAL-LINE-DATA is the result of `scroll-on-drag--evil-visual-line-data'."
   (declare (indent 1))
   `(unwind-protect
@@ -217,8 +217,7 @@ The result should be passed to `scroll-on-drag--goal-column-restore'."
    (current-column)
    (or goal-column
        (cond
-        ((and temporary-goal-column
-              (memq last-command (list 'next-line 'previous-line 'line-move)))
+        ((and temporary-goal-column (memq last-command '(next-line previous-line line-move)))
          (cond
           ((consp temporary-goal-column)
            (car temporary-goal-column))
@@ -241,15 +240,15 @@ The result should be passed to `scroll-on-drag--goal-column-restore'."
 
 
 ;; ---------------------------------------------------------------------------
-;; Public Functions
+;; Internal Implementation
 
 (defun scroll-on-drag--impl ()
-  "Interactively scroll (typically on click event).
-Returns true when scrolling took place, otherwise nil."
+  "Interactively scroll, typically on click event.
+Returns non-nil when scrolling took place, otherwise nil."
   (declare (important-return-value t))
   (let* ((scroll-timer nil)
 
-         ; Don't run unnecessary logic when scrolling.
+         ;; Don't run unnecessary logic when scrolling.
          (inhibit-point-motion-hooks t)
          ;; Only draw explicitly once all actions have been done.
          (inhibit-redisplay t)
@@ -259,7 +258,7 @@ Returns true when scrolling took place, otherwise nil."
          (this-frame-char-height (frame-char-height))
          (this-frame-char-height-as-float (float this-frame-char-height))
 
-         ;; Reset's when pressing Escape.
+         ;; Resets when pressing Escape.
          (has-scrolled nil)
          ;; Doesn't reset (so we can detect clicks).
          (has-scrolled-real nil)
@@ -440,7 +439,7 @@ Returns true when scrolling took place, otherwise nil."
 
          ;; Workaround for bad pixel scrolling performance
          ;; when the cursor is partially outside the view.
-         (scroll-consrtain-point-below-window-start-fn
+         (scroll-constrain-point-below-window-start-fn
           (lambda ()
             (let ((lines-from-top (count-lines (window-start) (pos-bol))))
               (when (> scroll-margin lines-from-top)
@@ -476,7 +475,7 @@ Returns true when scrolling took place, otherwise nil."
                        ;; Clamp point to scroll bounds on first scroll,
                        ;; allow pressing 'Esc' to use unclamped position.
                        (when scroll-on-drag-smooth
-                         (funcall scroll-consrtain-point-below-window-start-fn))
+                         (funcall scroll-constrain-point-below-window-start-fn))
                        (setq has-scrolled t))
                      (unless has-scrolled-real
                        (let ((inhibit-redisplay nil))
@@ -530,7 +529,7 @@ This requires a separate code path to run pre/post logic."
       (scroll-on-drag--impl)))))
 
 (defun scroll-on-drag--impl-with-mode-line-format ()
-  "Call `mode-line-format' with mode-line override."
+  "Conditionally override `mode-line-format'."
   (declare (important-return-value nil))
 
   (cond
@@ -551,6 +550,11 @@ This requires a separate code path to run pre/post logic."
    (t
     (scroll-on-drag--impl-with-mode-line-format))))
 
+
+;; ---------------------------------------------------------------------------
+;; Public Functions
+
+;;;###autoload
 (defun scroll-on-drag (&optional event)
   "Main scroll on drag function.
 
@@ -568,7 +572,7 @@ when `scroll-on-drag-follow-mouse' is non-nil."
 ;;;###autoload
 (defmacro scroll-on-drag-with-fallback (&rest body)
   "A macro to scroll and perform a different action on click.
-Optional argument BODY Hello."
+Optional argument BODY is executed when scrolling did not take place."
   `(lambda ()
      (interactive)
      (unless (scroll-on-drag)
