@@ -140,7 +140,7 @@ ALSO-MOVE-POINT When non-nil, move the POINT as well."
   (declare (important-return-value nil))
   (cond
    ((< delta-px 0)
-    (let* ((scroll-px-prev (- char-height (window-vscroll nil t))) ; flip.
+    (let* ((scroll-px-prev (- char-height (window-vscroll window t))) ; flip.
            (scroll-px-next (+ scroll-px-prev (- delta-px))) ; flip.
            (lines (/ scroll-px-next char-height))
            (scroll-px (- scroll-px-next (* lines char-height)))
@@ -154,7 +154,7 @@ ALSO-MOVE-POINT When non-nil, move the POINT as well."
       (set-window-vscroll window (- char-height scroll-px) t)
       (- lines-remainder)))
    ((> delta-px 0)
-    (let* ((scroll-px-prev (window-vscroll nil t))
+    (let* ((scroll-px-prev (window-vscroll window t))
            (scroll-px-next (+ scroll-px-prev delta-px))
            (lines (/ scroll-px-next char-height))
            (scroll-px (- scroll-px-next (* lines char-height)))
