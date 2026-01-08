@@ -12,7 +12,7 @@ Available via `melpa <https://melpa.org/#/scroll-on-drag>`__.
 Motivation
 ==========
 
-Having an interactive scroll action that runs a highly varied speeds,
+Having an interactive scroll action that runs at highly varied speeds,
 either a few lines, or halfway down a large file.
 
 *Note that this is similar to auto-scroll in Firefox.*
@@ -27,7 +27,7 @@ Smooth Scroll
 Non-Linear Speed
    Larger cursor motion increases scroll speed increasingly
    allowing a drag motion to scroll down the entire document, or only a few lines.
-   See ``cursor-on-drag-motion-accelerate``.
+   See ``scroll-on-drag-motion-accelerate``.
 Cancel Support
    You can cancel the scroll action for peeking at other parts of the file.
 Un-intrusive
@@ -74,7 +74,7 @@ Customization
 While the defaults seem to work well, these values can be customized.
 
 ``scroll-on-drag-style``: ``'line-by-pixel``
-  The the method scrolling is calculated.
+  The method scrolling is calculated.
 
   - ``'line-by-pixel`` Scrolling is calculated at a pixel level.
   - ``'line`` Scrolling is calculated at line-level.

@@ -78,7 +78,7 @@
 (defcustom scroll-on-drag-mode-line-format nil
   "The `mode-line-format' to use or nil to leave the `mode-line-format' unchanged.
 
-This can be useful to use a simplified or even disabling the mode-line
+This can be useful for simplifying or even disabling the mode-line
 while scrolling, as a complex mode-line can interfere with smooth scrolling."
   :type '(choice (const nil) sexp))
 
@@ -101,17 +101,18 @@ while scrolling, as a complex mode-line can interfere with smooth scrolling."
 ;; Generic scrolling functions.
 ;;
 ;; It would be nice if this were part of a more general library.
-;; Support for move the point is needed because failing to do this
+;; Support for moving the point is needed because failing to do this
 ;; makes the window constrained so the point stays within it.
 
 ;; Per-line Scroll.
 ;; Return remainder of lines to scroll (matching forward-line).
 (defun scroll-on-drag--scroll-by-lines (window lines also-move-point)
-  "Line based scroll that optionally move the point.
+  "Line based scroll that optionally moves the point.
 WINDOW The window to scroll.
 LINES The number of lines to scroll (signed).
-ALSO-MOVE-POINT When non-nil, move the POINT as well."
-  (declare (important-return-value nil))
+ALSO-MOVE-POINT When non-nil, move the POINT as well.
+Return remainder of lines to scroll (matching `forward-line')."
+  (declare (important-return-value t))
   (let ((lines-remainder 0))
     (when also-move-point
       (let ((lines-point-remainder (forward-line lines)))
@@ -132,11 +133,12 @@ ALSO-MOVE-POINT When non-nil, move the POINT as well."
 ;; Per-pixel Scroll.
 ;; Return remainder of lines to scroll (matching forward-line).
 (defun scroll-on-drag--scroll-by-pixels (window char-height delta-px also-move-point)
-  "Pixel based scroll that optionally move the point.
+  "Pixel based scroll that optionally moves the point.
 WINDOW The window to scroll.
 CHAR-HEIGHT The result of `frame-char-height'.
 DELTA-PX The number of pixels to scroll (signed).
-ALSO-MOVE-POINT When non-nil, move the POINT as well."
+ALSO-MOVE-POINT When non-nil, move the POINT as well.
+Return remainder of lines to scroll (matching `forward-line')."
   (declare (important-return-value nil))
   (cond
    ((< delta-px 0)
